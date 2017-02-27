@@ -1,0 +1,23 @@
+data/
+
+# ------------------------------------- #
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Directories from IDE
+.idea
+
+# vim
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~

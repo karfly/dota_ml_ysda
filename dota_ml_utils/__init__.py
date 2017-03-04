@@ -226,3 +226,19 @@ def make_submission(test_df, model, root, title, params={}, score=None):
         json.dump(params, fout, indent=4)
 
     # TODO: Dump model here
+
+
+def plot_feature_ranking(importances, feature_names, max_n_importances=20):
+    fig, ax = plt.subplots(figsize=(10, min(len(importances), max_n_importances) * 0.5))
+
+    importances_sorted_indexes = np.argsort(importances)[::-1][:max_n_importances][::-1]
+    importances_sorted = importances[importances_sorted_indexes]
+
+    ax.barh(range(len(importances_sorted)), importances_sorted,
+            color='blue', align='center')
+
+    ax.set_title('Feature ranking', fontsize=20)
+    ax.set_yticks(range(len(importances_sorted)))
+    ax.set_yticklabels(feature_names[importances_sorted_indexes], fontsize=15)
+    ax.set_ylim([-1, len(importances_sorted)])
+    ax.set_xlabel("importance", fontsize=18)

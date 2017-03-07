@@ -18,7 +18,7 @@ def make_submission(test_df, model, root, title, params={}, score=None):
     datetime_now = datetime.now()
 
     dir_name = title
-    dir_name += '[score={:.4}]'.format(score) if score is not None else ''
+    dir_name += '[score={:.5}]'.format(score) if score is not None else ''
     dir_name += '[{}]'.format(datetime_now.strftime('%d-%m-%Y %H:%M:%S'))
     dir_path = os.path.join(root, dir_name)
     os.makedirs(dir_path)

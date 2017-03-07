@@ -84,7 +84,21 @@ def add_temporal_features(train_df, test_df, feature):
     return train_df, test_df
 
 
-def transform_data(gold_features=False, lh_features=False, xp_features=False):
+def add_hero_features(train_df, test_df):
+    print('Adding one-hot encoding hero features...')
+    heroes_df = pd.read_csv(os.path.join(data_dir_path, 'heroes.csv'), index_col='mid', dtype='object')
+    heroes_df_ohe = pd.get_dummies(heroes_df)
+
+    train_df = _merge_df_by_index(train_df, heroes_df_ohe)
+    test_df = _merge_df_by_index(test_df, heroes_df_ohe)
+
+    return train_df, test_df
+
+
+def transform_data(gold_features=False,
+                   lh_features=False,
+                   xp_features=False,
+                   hero_features=False):
     train_df = pd.read_csv(os.path.join(data_dir_path, 'train.csv'), index_col='mid')
     test_df = pd.read_csv(os.path.join(data_dir_path, 'test.csv'), index_col='mid')
 
@@ -96,5 +110,8 @@ def transform_data(gold_features=False, lh_features=False, xp_features=False):
 
     if xp_features:
         train_df, test_df = add_temporal_features(train_df, test_df, 'xp')
+
+    if hero_features:
+        train_df, test_df = add_hero_features(train_df, test_df)
 
     return train_df, test_df

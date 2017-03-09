@@ -84,13 +84,29 @@ def add_temporal_features(train_df, test_df, feature):
     return train_df, test_df
 
 
-def add_hero_features(train_df, test_df):
+def add_hero_features(train_df, test_df,
+                      add_heroes_by_player=False,
+                      add_heroes_by_team=False):
     print('Adding one-hot encoding hero features...')
     heroes_df = pd.read_csv(os.path.join(data_dir_path, 'heroes.csv'), index_col='mid', dtype='object')
-    heroes_df_ohe = pd.get_dummies(heroes_df)
+    heroes_df_ohe = pd.get_dummies(heroes_df.add_suffix('_is_hero'))
 
-    train_df = _merge_df_by_index(train_df, heroes_df_ohe)
-    test_df = _merge_df_by_index(test_df, heroes_df_ohe)
+    team_heroes_df = pd.DataFrame(index=heroes_df.index)
+    n_heroes = len(heroes_df['player_0'].unique())
+    for hero_id in range(n_heroes):
+        team_heroes_df['radiant_has_hero_{}'.format(hero_id)] = sum(
+            [heroes_df_ohe['{}_is_hero_{}'.format(player_id, hero_id)] for player_id in radiant_player_columns])
+        team_heroes_df['dire_has_hero_{}'.format(hero_id)] = sum(
+            [heroes_df_ohe['{}_is_hero_{}'.format(player_id, hero_id)] for player_id in dire_player_columns])
+
+    # Merging
+    if add_heroes_by_player:
+        train_df = _merge_df_by_index(train_df, heroes_df_ohe)
+        test_df = _merge_df_by_index(test_df, heroes_df_ohe)
+
+    if add_heroes_by_team:
+        train_df = _merge_df_by_index(train_df, team_heroes_df)
+        test_df = _merge_df_by_index(test_df, team_heroes_df)
 
     return train_df, test_df
 
@@ -98,7 +114,8 @@ def add_hero_features(train_df, test_df):
 def transform_data(gold_features=False,
                    lh_features=False,
                    xp_features=False,
-                   hero_features=False):
+                   add_heroes_by_player=False,
+                   add_heroes_by_team=False):
     train_df = pd.read_csv(os.path.join(data_dir_path, 'train.csv'), index_col='mid')
     test_df = pd.read_csv(os.path.join(data_dir_path, 'test.csv'), index_col='mid')
 
@@ -111,7 +128,9 @@ def transform_data(gold_features=False,
     if xp_features:
         train_df, test_df = add_temporal_features(train_df, test_df, 'xp')
 
-    if hero_features:
-        train_df, test_df = add_hero_features(train_df, test_df)
+    if add_heroes_by_player or add_heroes_by_team:
+        train_df, test_df = add_hero_features(train_df, test_df,
+                                              add_heroes_by_player=add_heroes_by_player,
+                                              add_heroes_by_team=add_heroes_by_team)
 
     return train_df, test_df

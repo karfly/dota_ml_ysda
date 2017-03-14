@@ -163,7 +163,8 @@ def add_events_features(train_df, test_df):
 def add_items_features(train_df, test_df,
                        add_items_by_player=False,
                        add_items_by_team=False,
-                       add_vector_items=False):
+                       add_vector_items=False,
+                       add_bigram_items=False):
     items_df = pd.read_csv('data/items.csv', index_col='mid').fillna(0)
 
     players_dfs = []
@@ -185,6 +186,17 @@ def add_items_features(train_df, test_df,
         vector_items_df['item_{}'.format(item_id)] = items_by_team_df['radiant_has_item_{}'.format(item_id)] - \
                                                      items_by_team_df['dire_has_item_{}'.format(item_id)]
 
+    bigram_items_df = pd.DataFrame(index=items_df.index, dtype='int')
+    for item_i in range(n_items):
+        for item_j in range(item_i + 1, n_items):
+            bigram_items_df['item_{}_and_item_{}'.format(item_i, item_j)] = (
+                (items_by_team_df['radiant_has_item_{}'.format(item_i)] == 1) & \
+                (items_by_team_df['radiant_has_item_{}'.format(item_j)] == 1)).astype('int')
+
+            bigram_items_df['item_{}_and_item_{}'.format(item_i, item_j)] = (
+                (items_by_team_df['dire_has_item_{}'.format(item_i)] == 1) & \
+                (items_by_team_df['dire_has_item_{}'.format(item_j)] == 1)).astype('int')
+
     # Merging
     if add_items_by_player:
         print('Adding items features by player...')
@@ -201,6 +213,11 @@ def add_items_features(train_df, test_df,
         train_df = _merge_df_by_index(train_df, vector_items_df)
         test_df = _merge_df_by_index(test_df, vector_items_df)
 
+    if add_bigram_items:
+        print('Adding bigram items features...')
+        train_df = _merge_df_by_index(train_df, bigram_items_df)
+        test_df = _merge_df_by_index(test_df, bigram_items_df)
+
     return train_df.fillna(0), test_df.fillna(0)
 
 
@@ -210,7 +227,7 @@ def transform_data(scale=False,
                    xp_features=False,
                    heroes_by_player=False, heroes_by_team=False, vector_heroes=False, bigram_heroes=False,
                    events_features=False,
-                   items_by_player=False, items_by_team=False, vector_items=False):
+                   items_by_player=False, items_by_team=False, vector_items=False, bigram_items=False):
     train_df = pd.read_csv(os.path.join(data_dir_path, 'train.csv'), index_col='mid')
     test_df = pd.read_csv(os.path.join(data_dir_path, 'test.csv'), index_col='mid')
 
@@ -253,11 +270,12 @@ def transform_data(scale=False,
     if events_features:
         train_df, test_df = add_events_features(train_df, test_df)
 
-    if items_by_player or items_by_team or vector_items:
+    if items_by_player or items_by_team or vector_items or bigram_items:
         train_df, test_df = add_items_features(train_df, test_df,
                                                add_items_by_player=items_by_player,
                                                add_items_by_team=items_by_team,
-                                               add_vector_items=vector_items)
+                                               add_vector_items=vector_items,
+                                               add_bigram_items=bigram_items)
 
 
 
